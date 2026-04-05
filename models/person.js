@@ -5,8 +5,22 @@ let persons = [
   { id: "4", name: "Mary Poppendieck", number: "39-23-6423122" }
 ];
 
-const findAll = () => {
+export const findAll = () => {
   return persons;
 };
 
-export default findAll;
+export const findById = (id) => persons.find(p => p.id === id);
+
+export const remove = (id) => {
+  persons = persons.filter(p => p.id !== id);
+  return true; 
+};
+
+export const create = (person) => {
+  const newPerson = {
+    id: String(Math.floor(Math.random() * 1000000)),
+    ...person
+  };
+  persons = persons.concat(newPerson);
+  return newPerson;
+};

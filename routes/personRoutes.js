@@ -1,8 +1,11 @@
 import {Router} from 'express';
-import {getAllPersons} from '../controllers/personController.js';
+import {getAllPersons, getPerson, addPerson, deletePerson} from '../controllers/personController.js';
 
 const router = Router();
 
 router.get('/', getAllPersons);
+router.get('/:id', getPerson);
+router.post('/', addPerson);
+router.delete('/:id', deletePerson);
 
 export default router;
