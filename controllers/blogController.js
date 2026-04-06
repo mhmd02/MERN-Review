@@ -2,7 +2,7 @@ import Blog from "../models/blogs.js";
 import User from "../models/users.js";
 
 export const getAllBlogs = async (req, res) => {
-  const { search, author, sortBy, order } = req.query;
+  const { search, author, sortBy, order, page, limit } = req.query;
   let query = {};
 
   if (search) {
@@ -23,12 +23,31 @@ export const getAllBlogs = async (req, res) => {
 
     sortOptions[sortBy] = order === "desc" ? -1 : 1;
   }
-  const blogs = await Blog.find(query).sort(sortOptions).populate("user", {
-    username: 1,
-    name: 1,
-  });
 
-  res.json(blogs);
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalBlogs = await Blog.countDocuments(query);
+
+  const blogs = await Blog.find(query)
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(limitNum)
+    .populate("user", {
+      username: 1,
+      name: 1,
+    });
+
+  res.json({
+    metadata: {
+      currentPage: pageNum,
+      pageSize: blogs.length,
+      totalPages: Math.ceil(totalBlogs / limitNum),
+      totalBlogs: totalBlogs,
+    },
+    blogs,
+  });
 };
 
 export const createBlog = async (req, res) => {
