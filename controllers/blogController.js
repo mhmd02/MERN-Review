@@ -2,13 +2,17 @@ import Blog from "../models/blogs.js";
 import User from "../models/users.js";
 
 export const getAllBlogs = async (req, res) => {
-  const { search } = req.query;
+  const { search, author } = req.query;
   let query = {};
 
   if (search) {
     query.title = { $regex: search, $options: "i" };
   }
+  if (author) {
+    query.author = { $regex: author, $options: "i" };
+  }
 
+  console.log(query);
   const blogs = await Blog.find(query).populate("user", {
     username: 1,
     name: 1,
