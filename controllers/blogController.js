@@ -2,7 +2,7 @@ import Blog from "../models/blogs.js";
 import User from "../models/users.js";
 
 export const getAllBlogs = async (req, res) => {
-  const { search, author } = req.query;
+  const { search, author, sortBy, order } = req.query;
   let query = {};
 
   if (search) {
@@ -12,8 +12,18 @@ export const getAllBlogs = async (req, res) => {
     query.author = { $regex: author, $options: "i" };
   }
 
-  console.log(query);
-  const blogs = await Blog.find(query).populate("user", {
+  const sortOptions = {};
+  if (sortBy) {
+    const sortingFields = ["likes"];
+    if (!sortingFields.includes(sortBy)) {
+      return response
+        .status(400)
+        .json({ error: `Sorting by ${sortBy} is not supported` });
+    }
+
+    sortOptions[sortBy] = order === "desc" ? -1 : 1;
+  }
+  const blogs = await Blog.find(query).sort(sortOptions).populate("user", {
     username: 1,
     name: 1,
   });
