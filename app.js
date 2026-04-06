@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
-import routes from "./routes/blogRoute.js";
+import blogRoutes from "./routes/blogRoute.js";
+import userRoutes from "./routes/userRoute.js";
 
 
 const app = express();
@@ -15,7 +16,8 @@ mongoose
 
 app.use(express.json());
 
-app.use("/api/blogs", routes);
+app.use("/api/blogs", blogRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {

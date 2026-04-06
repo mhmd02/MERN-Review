@@ -9,7 +9,6 @@ export const getAllBlogs = (request, response) => {
 export const createBlog = (request, response) => {
   console.log("This is a post request");
   const blog = new Blog(request.body);
-
   blog.save().then((result) => {
     response.status(201).json(result);
   });
