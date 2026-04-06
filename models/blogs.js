@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const blogSchema = new mongoose.Schema({
-  title: String,
+  title: {
+    type: String,
+    required: true,
+    index: true,
+  },
   author: String,
   url: String,
   likes: Number,
@@ -18,6 +22,8 @@ blogSchema.set("toJSON", {
     delete returnedObject.__v;
   },
 });
+
+blogSchema.index({ title: 'text' })
 
 const Blog = mongoose.model("Blog", blogSchema);
 
