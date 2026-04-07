@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import Blog from "../models/blogs.js";
 import User from "../models/users.js";
 
@@ -51,15 +52,21 @@ export const getAllBlogs = async (req, res) => {
 };
 
 export const createBlog = async (req, res) => {
-  const body = req.body;
+  const { title, author, url, likes } = req.body;
 
-  const user = await User.findOne({});
+  const decodedToken = jwt.verify(req.token, process.env.SECRET);
+
+  if (!decodedToken.id) {
+    return res.status(401).json({ error: "token invalid" });
+  }
+
+  const user = await User.findById(decodedToken.id);
 
   const blog = new Blog({
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes || 0,
+    title,
+    author,
+    url,
+    likes: likes || 0,
     user: user._id,
   });
 

@@ -2,7 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import blogRoutes from "./routes/blogRoute.js";
 import userRoutes from "./routes/userRoute.js";
-
+import loginRoutes from "./routes/loginRoute.js";
+import {tokenExtractor} from "./middleware/authenticatorMiddleware.js";
 
 const app = express();
 
@@ -16,6 +17,9 @@ mongoose
 
 app.use(express.json());
 
+app.use(tokenExtractor)
+
+app.use("/api/login", loginRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/users", userRoutes);
 
