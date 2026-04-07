@@ -17,7 +17,7 @@ export const getAllBlogs = async (req, res) => {
   if (sortBy) {
     const sortingFields = ["likes"];
     if (!sortingFields.includes(sortBy)) {
-      return response
+      return res
         .status(400)
         .json({ error: `Sorting by ${sortBy} is not supported` });
     }
@@ -92,4 +92,38 @@ export const likeBlog = async (req, res) => {
   }
 
   res.json(updatedBlog);
+};
+
+export const deleteBlog = async (req, res) => {
+
+
+  if (!req.token) {
+    return response.status(401).json({ error: 'token missing' })
+  }
+
+  const decodedToken = jwt.verify(req.token, process.env.SECRET);
+
+  if (!decodedToken.id) {
+    return res.status(401).json({ error: "token missing or invalid" });
+  }
+
+  const blog = await Blog.findById(req.params.id);
+
+  if (!blog) {
+    return res.status(404).json({ error: "blog not found" });
+  }
+
+  if (blog.user.toString() !== decodedToken.id.toString()) {
+    return res.status(403).json({
+      error: "only the creator can delete this blog",
+    });
+  }
+
+  await Blog.findByIdAndDelete(req.params.id);
+
+  const user = await User.findById(decodedToken.id);
+  user.blogs = user.blogs.filter((b) => b.toString() !== req.params.id);
+  await user.save();
+
+  res.status(204).end();
 };
