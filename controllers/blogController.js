@@ -54,13 +54,7 @@ export const getAllBlogs = async (req, res) => {
 export const createBlog = async (req, res) => {
   const { title, author, url, likes } = req.body;
 
-  const decodedToken = jwt.verify(req.token, process.env.SECRET);
-
-  if (!decodedToken.id) {
-    return res.status(401).json({ error: "token invalid" });
-  }
-
-  const user = await User.findById(decodedToken.id);
+  const user = req.user;
 
   const blog = new Blog({
     title,
@@ -95,35 +89,21 @@ export const likeBlog = async (req, res) => {
 };
 
 export const deleteBlog = async (req, res) => {
-
-
-  if (!req.token) {
-    return response.status(401).json({ error: 'token missing' })
-  }
-
-  const decodedToken = jwt.verify(req.token, process.env.SECRET);
-
-  if (!decodedToken.id) {
-    return res.status(401).json({ error: "token missing or invalid" });
-  }
-
-  const blog = await Blog.findById(req.params.id);
+  const user = req.user 
+  const blog = await Blog.findById(req.params.id)
 
   if (!blog) {
-    return res.status(404).json({ error: "blog not found" });
+    return res.status(404).json({ error: 'blog not found' })
   }
 
-  if (blog.user.toString() !== decodedToken.id.toString()) {
-    return res.status(403).json({
-      error: "only the creator can delete this blog",
-    });
+  if (blog.user.toString() !== user._id.toString()) {
+    return res.status(403).json({ error: 'only the creator can delete this' })
   }
 
-  await Blog.findByIdAndDelete(req.params.id);
+  await Blog.findByIdAndDelete(req.params.id)
+  
+  user.blogs = user.blogs.filter(b => b.toString() !== blog._id.toString())
+  await user.save()
 
-  const user = await User.findById(decodedToken.id);
-  user.blogs = user.blogs.filter((b) => b.toString() !== req.params.id);
-  await user.save();
-
-  res.status(204).end();
-};
+  res.status(204).end()
+}
