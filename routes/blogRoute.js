@@ -11,7 +11,7 @@ const router = Router();
 
 router.get("/", getAllBlogs);
 router.post("/", userExtractor, createBlog);
-router.patch("/:id/like", likeBlog);
+router.patch("/like/:id", userExtractor, likeBlog);
 router.delete("/:id", userExtractor, deleteBlog);
 
 export default router;

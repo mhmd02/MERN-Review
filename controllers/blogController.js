@@ -74,36 +74,41 @@ export const createBlog = async (req, res) => {
 
 export const likeBlog = async (req, res) => {
   const { id } = req.params;
-
-  const updatedBlog = await Blog.findByIdAndUpdate(
-    id,
-    { $inc: { likes: 1 } },
-    { new: true, runValidators: true },
-  ).populate("user", { username: 1, name: 1 });
-
-  if (!updatedBlog) {
+  const user = req.user;
+  const blog = await Blog.findById(id);
+  if (!blog) {
     return res.status(404).json({ error: "blog not found" });
   }
-
-  res.json(updatedBlog);
+  const alreadyLiked = blog.likedBy.includes(user._id);
+  if (alreadyLiked) {
+    blog.likedBy = blog.likedBy.filter(
+      (uid) => uid.toString() !== user._id.toString(),
+    );
+  } else {
+    blog.likedBy.push(user._id);
+  }
+  const updatedBlog = await blog.save();
+  const responseData = updatedBlog.toJSON();
+  responseData.likes = updatedBlog.likedBy.length;
+  res.json(responseData);
 };
 
 export const deleteBlog = async (req, res) => {
-  const user = req.user 
-  const blog = await Blog.findById(req.params.id)
+  const user = req.user;
+  const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    return res.status(404).json({ error: 'blog not found' })
+    return res.status(404).json({ error: "blog not found" });
   }
 
   if (blog.user.toString() !== user._id.toString()) {
-    return res.status(403).json({ error: 'only the creator can delete this' })
+    return res.status(403).json({ error: "only the creator can delete this" });
   }
 
-  await Blog.findByIdAndDelete(req.params.id)
-  
-  user.blogs = user.blogs.filter(b => b.toString() !== blog._id.toString())
-  await user.save()
+  await Blog.findByIdAndDelete(req.params.id);
 
-  res.status(204).end()
-}
+  user.blogs = user.blogs.filter((b) => b.toString() !== blog._id.toString());
+  await user.save();
+
+  res.status(204).end();
+};
